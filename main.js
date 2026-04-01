@@ -448,40 +448,44 @@ function attachEventListeners(eventSource, event_types) {
         heightManager = new HeightManager();
 
         const settingsHtml = `
-            <div id="pretext_profiler_settings" style="margin-bottom: 20px;">
-                <h3>Pretext 高度分析器 + 虚拟滚动 (v1.2.3)</h3>
-                <div style="background: #2a2a2a; padding: 10px; border-radius: 8px; margin-bottom: 15px;">
-                    <label style="margin-right: 20px;">
-                        <input type="checkbox" id="pretext_profiler_enable" checked> 启用测量
-                    </label>
-                    <label>
-                        <input type="checkbox" id="virtual_scroll_enable"> 启用虚拟滚动
-                        <span id="virtual_status" style="margin-left: 8px; font-size: 12px; color: #888;">已禁用</span>
-                    </label>
-                </div>
-                <div style="background: #1e1e1e; padding: 12px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #4caf50;">
-                    <strong>AB 性能对比</strong>
-                    <div style="display: flex; gap: 30px; margin-top: 10px; font-size: 13px;">
-                        <div style="flex: 1;">
-                            <div style="color: #ff9800;">原生渲染模式</div>
-                            <div>滚动次数: <span id="bench_native_count">0</span></div>
-                            <div>平均耗时: <span id="bench_native_avg">0</span> ms/帧</div>
-                        </div>
-                        <div style="flex: 1;">
-                            <div style="color: #4caf50;">Pretext 虚拟滚动</div>
-                            <div>滚动次数: <span id="bench_virtual_count">0</span></div>
-                            <div>平均耗时: <span id="bench_virtual_avg">0</span> ms/帧</div>
+            <details open id="pretext_profiler_settings_wrapper" style="margin-bottom: 20px;">
+                <summary style="cursor: pointer; font-weight: bold; user-select: none;">
+                    <h3 style="display: inline-block; margin: 0;">Pretext 高度分析器 + 虚拟滚动 (v1.2.1)</h3>
+                </summary>
+                <div id="pretext_profiler_settings" style="margin-top: 10px;">
+                    <div style="background: #2a2a2a; padding: 10px; border-radius: 8px; margin-bottom: 15px;">
+                        <label style="margin-right: 20px;">
+                            <input type="checkbox" id="pretext_profiler_enable" checked> 启用测量
+                        </label>
+                        <label>
+                            <input type="checkbox" id="virtual_scroll_enable"> 启用虚拟滚动
+                            <span id="virtual_status" style="margin-left: 8px; font-size: 12px; color: #888;">已禁用</span>
+                        </label>
+                    </div>
+                    <div style="background: #1e1e1e; padding: 12px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #4caf50;">
+                        <strong>AB 性能对比</strong>
+                        <div style="display: flex; gap: 30px; margin-top: 10px; font-size: 13px;">
+                            <div style="flex: 1;">
+                                <div style="color: #ff9800;">原生渲染模式</div>
+                                <div>滚动次数: <span id="bench_native_count">0</span></div>
+                                <div>平均耗时: <span id="bench_native_avg">0</span> ms/帧</div>
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="color: #4caf50;">Pretext 虚拟滚动</div>
+                                <div>滚动次数: <span id="bench_virtual_count">0</span></div>
+                                <div>平均耗时: <span id="bench_virtual_avg">0</span> ms/帧</div>
+                            </div>
                         </div>
                     </div>
+                    <div id="pretext_profiler_stats" style="margin-top: 10px; font-size: 12px; background: #2a2a2a; padding: 8px; border-radius: 6px;">
+                        <strong>Pretext 测量统计</strong><br>
+                        处理消息数: <span id="pretext_msg_count">0</span><br>
+                        总 prepare 耗时: <span id="pretext_prepare_total">0</span> ms<br>
+                        总 layout 耗时: <span id="pretext_layout_total">0</span> ms
+                    </div>
+                    <button id="pretext_profiler_reset" style="margin-top: 8px;">重置所有统计</button>
                 </div>
-                <div id="pretext_profiler_stats" style="margin-top: 10px; font-size: 12px; background: #2a2a2a; padding: 8px; border-radius: 6px;">
-                    <strong>Pretext 测量统计</strong><br>
-                    处理消息数: <span id="pretext_msg_count">0</span><br>
-                    总 prepare 耗时: <span id="pretext_prepare_total">0</span> ms<br>
-                    总 layout 耗时: <span id="pretext_layout_total">0</span> ms
-                </div>
-                <button id="pretext_profiler_reset" style="margin-top: 8px;">重置所有统计</button>
-            </div>
+            </details>
         `;
 
         const settingsContainer = document.getElementById('extensions_settings');

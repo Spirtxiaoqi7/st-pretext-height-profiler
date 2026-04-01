@@ -1,88 +1,77 @@
+markdown
 # Pretext Height Profiler
 
-基于 Pretext 引擎的 SillyTavern 插件  
-高精度测量聊天消息的高度，并实时分析性能数据。
+基于 [Pretext](https://github.com/chenglou/pretext) 引擎的 SillyTavern 插件，提供虚拟滚动性能优化与 AB 性能对比，**不影响原生界面和按钮交互**。
 
-![SillyTavern](https://img.shields.io/badge/SillyTavern-插件-blue)
-![License](https://img.shields.io/badge/许可证-禁止商用-red)
-![Version](https://img.shields.io/badge/版本-1.0.0-green)
+## 功能特性
 
-## 简介
-
-Pretext Height Profiler 是一个轻量但强大的 SillyTavern UI 扩展。  
-它利用下一代文本布局引擎 Pretext，绕过传统 DOM 测量，实现：
-
-- 极快的消息高度计算（单次 layout 低至 0.01ms）
-- 精确的行数 / 高度预估（与最终渲染完全一致）
-- 实时性能监控（prepare / layout 耗时统计）
-- 内置测试工具（可自由输入文本验证 Pretext 效果）
-
-无论你的聊天记录有多长，它都不会造成界面卡顿。
-
-## 技术出处
-
-本插件核心布局引擎来自：
-
-- Pretext - 由前 React 核心成员 Cheng Lou 开发的新一代文本布局工具  
-- 采用纯 JavaScript / Canvas 2D 预测量 + 纯算术 layout，完全不触发 DOM 重排  
-- 性能可达 120 FPS，适合处理海量文本
-
-本插件仅作为 Pretext 在 SillyTavern 中的落地演示与实用工具。
+- **真实高度虚拟滚动**：基于消息真实渲染高度布局，滚动条精准，杜绝空白或遮盖。
+- **AB 性能对比**：分别统计原生渲染模式与虚拟滚动模式的滚动帧耗时，直观展现优化效果。
+- **无损集成**：采用内部轨道布局，不修改外部 DOM 结构，所有聊天按钮、侧边栏等功能完全保留。
+- **Pretext 统计**：展示 Pretext 测量耗时（prepare/layout），作为性能参考。
+- **一键重置**：清空所有统计数据，方便反复测试。
 
 ## 安装方法
 
 ### 方法一：通过 SillyTavern 内置扩展管理器（推荐）
 
-1. 打开 SillyTavern，进入扩展（Extensions）面板
-2. 点击 Download Extensions & Assets
-3. 在弹出的输入框中粘贴本仓库的 GitHub 地址：
-   https://github.com/Spirtxiaoqi7/st-pretext-height-profiler
-4. 点击 Download，等待安装完成
-5. 刷新页面或重启 SillyTavern
+1. 打开 SillyTavern，进入 **扩展（Extensions）** 面板。
+2. 点击 **Download Extensions & Assets**。
+3. 输入以下仓库地址：
+https://github.com/Spirtxiaoqi7/st-pretext-height-profiler
+
+text
+4. 点击 **Download**，等待安装完成。
+5. 刷新页面或重启 SillyTavern。
 
 ### 方法二：手动安装
 
-1. 下载本仓库的所有文件
+1. 下载本仓库的所有文件。
 2. 将整个文件夹放入 SillyTavern 的扩展目录：
-   data/<你的用户句柄>/extensions/st-pretext-height-profiler
-3. 重启 SillyTavern 或刷新页面
+data/<你的用户句柄>/extensions/st-pretext-height-profiler
 
-## 如何使用
+text
+3. 重启 SillyTavern 或刷新页面。
 
-1. 启动 SillyTavern 后，进入设置 -> 扩展
-2. 你会看到 Pretext Height Profiler 面板，默认已启用
-3. 插件会自动：
-   - 处理现有聊天消息
-   - 监听新消息并测量高度
-   - 在浏览器控制台（F12 -> Console）输出性能日志
-4. 面板中你可以：
-   - 勾选/取消勾选 启用插件
-   - 查看累计处理消息数、总 prepare / layout 耗时
-   - 点击 重置统计 清空数据
-   - 在 测试工具 区域输入任意文本，点击 测量高度 查看 Pretext 的即时性能
+## 使用方法
 
-提示：打开控制台可以看到每条消息的详细性能数据，例如：  
-[Pretext] 消息 "你好..." 高度=96px, 行数=4, prepare=0.023ms, layout=0.008ms
+1. 进入 **设置** → **扩展**，找到 **Pretext 高度分析器 + 虚拟滚动** 面板。
+2. **启用测量**：默认勾选，自动测量所有消息的高度并显示统计。
+3. **启用虚拟滚动**：勾选后聊天列表将切换为虚拟滚动模式，滚动性能大幅提升。
+4. **AB 性能对比**：
+- 不勾选“启用虚拟滚动”时，正常使用原生渲染，滚动时自动记录原生模式帧耗时。
+- 勾选后，滚动时自动记录虚拟滚动模式帧耗时。
+- 面板中会显示两种模式的滚动次数和平均帧耗时。
+5. **重置统计**：点击按钮清空所有统计数据，重新开始测试。
 
-## 许可证 & 使用条款
+## 常见问题
+
+- **启用虚拟滚动后聊天按钮无法点击？**  
+本版本已修复该问题，所有原生按钮功能完全保留。如仍有异常，请刷新页面重试。
+- **滚动条无法滚到底部？**  
+虚拟滚动基于真实高度，确保滚动范围准确。若仍有异常，请检查控制台错误或反馈。
+- **与其他扩展冲突？**  
+插件仅修改 `#chat` 容器内部结构，不改变外部元素，兼容性较高。
+
+## 技术细节
+
+- 虚拟滚动在激活时捕获所有消息节点的真实高度（`getBoundingClientRect().height`），构建高度管理器。
+- 使用内部轨道（`<div class="virtual-track">`）进行绝对定位布局，父容器仅保留滚动能力。
+- 节点池复用机制，仅渲染可见区域 + 预渲染（overscan）范围内的消息。
+- 监听 `MESSAGE_RECEIVED`、`CHAT_CHANGED`、`MESSAGE_EDITED` 事件，自动刷新高度和缓存。
+
+## 许可证
 
 - 作者：柒君
-- 允许传播：你可以自由复制、分享、修改本插件，但必须保留原作者信息和出处
-- 禁止商用：严禁将本插件用于任何商业目的（包括但不限于售卖、商业服务、嵌入收费产品等）
-- 代码开源：本插件源码公开，欢迎学习、改进和提交 Pull Request
-
-如有商业使用需求，请联系作者单独授权。
-
-## 贡献与反馈
-
-- 如果你遇到 Bug 或有功能建议，请在 GitHub Issues 中提出
-- 欢迎提交 PR 优化代码或文档
-- 如果你觉得这个插件有用，不妨给它一个 Star
+- 许可证：AGPL-3.0
+- 允许自由传播、修改，但必须保留原作者信息和许可证。
+- 禁止商用。
 
 ## 致谢
 
-- SillyTavern 社区 - 提供了强大的扩展框架
-- Pretext 作者 Cheng Lou - 创造了如此优雅的高性能布局引擎
+- [Pretext](https://github.com/chenglou/pretext) 作者 Cheng Lou
+- SillyTavern 社区
 
-Enjoy your smooth chatting!  
-—— 柒君
+## 版本历史
+
+详见 [CHANGELOG.md](./CHANGELOG.md)

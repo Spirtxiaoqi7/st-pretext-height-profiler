@@ -1,10 +1,10 @@
 {
   "display_name": "Pretext Height Profiler",
   "display_avatar": "height",
-  "description": "基于 Pretext 引擎的高性能消息高度测量工具，提供精确的布局性能分析。",
-  "version": "1.0.0",
+  "description": "基于 Pretext 引擎的虚拟滚动插件，提供精确性能对比，不破坏原生界面",
+  "version": "1.2.0",
   "author": "柒君",
-  "license": "Non-commercial",
+  "license": "AGPL-3.0",
   "type": "ui",
   "homepage": "https://github.com/Spirtxiaoqi7/st-pretext-height-profiler",
   "js": "main.js",

@@ -208,35 +208,62 @@ class VirtualScrollManager {
         this.heightManager = heightManager;
         this.nodePool = [];
         this.poolSize = 0;
+        this.overscan = 4;
         this.currentStartIndex = 0;
         this.currentEndIndex = -1;
         this.isActive = false;
         this.originalContent = null;
-        this.spacer = null;
+        this.track = null;
         this.resizeObserver = null;
         this.scrollMeasureStart = null;
+        this.renderedSourceIndexes = [];
+        this.messageNodeCache = [];
         this._scrollHandler = this._onScroll.bind(this);
+    }
+
+    _calculatePoolSize() {
+        var viewportHeight = this.container.clientHeight || 0;
+        var avgHeight = LINE_HEIGHT;
+        if (this.heightManager.heights.length > 0) {
+            avgHeight = Math.max(LINE_HEIGHT, this.heightManager.getTotalHeight() / this.heightManager.heights.length);
+        }
+        var visible = Math.ceil(viewportHeight / avgHeight);
+        return Math.min(this.heightManager.heights.length, Math.max(12, visible + this.overscan * 2));
+    }
+
+    _ensurePoolSize(size) {
+        while (this.nodePool.length < size) {
+            var node = document.createElement('div');
+            node.className = 'virtual-item';
+            node.style.position = 'absolute';
+            node.style.left = '0';
+            node.style.width = '100%';
+            node.style.boxSizing = 'border-box';
+            node.style.willChange = 'transform';
+            node.style.display = 'none';
+            this.track.appendChild(node);
+            this.nodePool.push(node);
+            this.renderedSourceIndexes.push(-1);
+        }
     }
 
     activate() {
         if (this.isActive) return;
         this.originalContent = this.container.innerHTML;
+        this.messageNodeCache = Array.from(this.container.querySelectorAll('.mes')).map(function(node) {
+            return node.cloneNode(true);
+        });
         this.container.innerHTML = '';
-        this.poolSize = Math.min(20, this.heightManager.heights.length);
-        for (var i = 0; i < this.poolSize; i++) {
-            var node = document.createElement('div');
-            node.className = 'mes virtual-mes';
-            node.style.position = 'absolute';
-            node.style.width = '100%';
-            node.style.left = '0';
-            node.style.overflow = 'hidden';
-            this.container.appendChild(node);
-            this.nodePool.push(node);
-        }
-        this.spacer = document.createElement('div');
-        this.spacer.style.position = 'relative';
-        this.spacer.style.height = this.heightManager.getTotalHeight() + 'px';
-        this.container.appendChild(this.spacer);
+
+        this.track = document.createElement('div');
+        this.track.style.position = 'relative';
+        this.track.style.height = this.heightManager.getTotalHeight() + 'px';
+        this.track.style.width = '100%';
+        this.container.appendChild(this.track);
+
+        this.poolSize = this._calculatePoolSize();
+        this._ensurePoolSize(this.poolSize);
+
         this.container.style.position = 'relative';
         this.container.style.overflowY = 'auto';
         this.container.addEventListener('scroll', this._scrollHandler);
@@ -256,14 +283,19 @@ class VirtualScrollManager {
         this.container.style.position = '';
         this.isActive = false;
         this.nodePool = [];
-        this.spacer = null;
+        this.renderedSourceIndexes = [];
+        this.messageNodeCache = [];
+        this.track = null;
     }
 
     refresh() {
         if (!this.isActive) return;
-        if (this.spacer) {
-            this.spacer.style.height = this.heightManager.getTotalHeight() + 'px';
+        if (this.track) {
+            this.track.style.height = this.heightManager.getTotalHeight() + 'px';
         }
+        this._ensurePoolSize(this._calculatePoolSize());
+        this.currentStartIndex = -1;
+        this.currentEndIndex = -1;
         this._updateVisibleRange();
     }
 
@@ -272,7 +304,7 @@ class VirtualScrollManager {
             this.scrollMeasureStart = performance.now();
         }
         requestAnimationFrame(function() {
-            if (this.scrollMeasureStart) {
+            if (this.scrollMeasureStart !== null) {
                 var duration = performance.now() - this.scrollMeasureStart;
                 virtualScrollCount++;
                 virtualScrollDuration += duration;
@@ -286,10 +318,10 @@ class VirtualScrollManager {
     _updateVisibleRange() {
         var scrollTop = this.container.scrollTop;
         var containerHeight = this.container.clientHeight;
-        var startIndex = this.heightManager.findIndex(scrollTop);
+        var startIndex = this.heightManager.findIndex(Math.max(0, scrollTop - this.overscan * LINE_HEIGHT));
         var endIndex = startIndex;
         var accumulatedHeight = this.heightManager.getOffset(startIndex);
-        var targetBottom = scrollTop + containerHeight;
+        var targetBottom = scrollTop + containerHeight + this.overscan * LINE_HEIGHT;
         while (endIndex < this.heightManager.heights.length - 1 && accumulatedHeight < targetBottom) {
             accumulatedHeight += this.heightManager.heights[endIndex];
             endIndex++;
@@ -306,6 +338,8 @@ class VirtualScrollManager {
         if (!chat) return;
         var visibleCount = endIndex - startIndex + 1;
 
+        this._ensurePoolSize(visibleCount);
+
         for (var i = 0; i < this.nodePool.length; i++) {
             this.nodePool[i].style.display = 'none';
         }
@@ -314,25 +348,30 @@ class VirtualScrollManager {
             var idx = startIndex + j;
             if (idx >= chat.length) break;
             var message = chat[idx];
-            var text = message.mes || message.text || '';
             var height = this.heightManager.heights[idx];
             var top = this.heightManager.getOffset(idx);
             var node = this.nodePool[j];
             node.style.display = 'block';
-            node.style.top = top + 'px';
+            node.style.transform = 'translateY(' + top + 'px)';
             node.style.height = height + 'px';
-            var sender = message.is_user ? 'user' : (message.name || 'AI');
-            node.innerHTML = `
-                <div class="mes_avatar"><div class="avatar"></div></div>
-                <div class="mes_body">
-                    <div class="mes_name">${escapeHtml(sender)}</div>
-                    <div class="mes_text" style="white-space: pre-wrap;">${escapeHtml(text)}</div>
-                </div>
-                <div class="mes_buttons"></div>
-            `;
+            if (this.renderedSourceIndexes[j] !== idx) {
+                node.innerHTML = '';
+                var sourceNode = this.messageNodeCache[idx];
+                if (sourceNode) {
+                    node.appendChild(sourceNode.cloneNode(true));
+                } else {
+                    var text = message.mes || message.text || '';
+                    node.innerHTML = '<div class="mes"><div class="mes_text" style="white-space: pre-wrap;">' + escapeHtml(text) + '</div></div>';
+                }
+                this.renderedSourceIndexes[j] = idx;
+            }
             node.setAttribute('data-mes-id', message.id || idx);
             node.setAttribute('data-index', idx);
             node.setAttribute('data-is-user', message.is_user);
+        }
+
+        for (var k = visibleCount; k < this.renderedSourceIndexes.length; k++) {
+            this.renderedSourceIndexes[k] = -1;
         }
     }
 }

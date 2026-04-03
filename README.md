@@ -1,4 +1,3 @@
-markdown
 # Pretext Height Profiler
 
 基于 [Pretext](https://github.com/chenglou/pretext) 引擎的 SillyTavern 插件，提供虚拟滚动性能优化与 AB 性能对比，**不影响原生界面和按钮交互**。
